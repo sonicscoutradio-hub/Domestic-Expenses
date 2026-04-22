@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Database 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e2ddd6;
+    --border2: #ccc7be;
+    --text: #1a1814;
+    --text2: #6b6560;
+    --text3: #9c9690;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --blue-text: #1d4ed8;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --green-text: #15803d;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --red-text: #b91c1c;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  header span { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  .main { max-width: 1020px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+
+  .salary-edit { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); margin-bottom: 1rem; }
+  .salary-edit input { height: 30px; width: 100px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); background: var(--surface); outline: none; }
+  .salary-edit input:focus { border-color: var(--blue); }
+  .btn-salary { height: 30px; padding: 0 10px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; }
+  .btn-salary:hover { background: var(--border); }
+
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1rem; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; }
+  .metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; font-weight: 500; }
+  .metric-value { font-size: 22px; font-weight: 600; font-family: 'DM Mono', monospace; letter-spacing: -0.5px; }
+  .metric-value.blue { color: var(--blue); }
+  .metric-value.red  { color: var(--red); }
+  .metric-value.green { color: var(--green); }
+
+  .bar-section { margin-bottom: 1.25rem; }
+  .bar-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 5px; }
+  .bar-track { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+
+  .controls { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .controls input[type="text"], .controls select { height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color .15s; }
+  .controls input[type="text"] { flex: 1; min-width: 160px; }
+  .controls input[type="text"]:focus, .controls select:focus { border-color: var(--blue); }
+
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  thead th { background: var(--surface2); color: var(--text3); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg); }
+  tbody td { padding: 9px 14px; color: var(--text); vertical-align: middle; }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 99px; }
+  .b0  { background:#eff6ff;color:#1d4ed8 }
+  .b1  { background:#f0fdf4;color:#15803d }
+  .b2  { background:#fffbeb;color:#92400e }
+  .b3  { background:#fdf2f8;color:#9d174d }
+  .b4  { background:#f0fdfa;color:#0f766e }
+  .b5  { background:#fefce8;color:#854d0e }
+  .b6  { background:#fff7ed;color:#9a3412 }
+  .b7  { background:#f5f3ff;color:#6d28d9 }
+  .b8  { background:#fef2f2;color:#b91c1c }
+  .b9  { background:#ecfdf5;color:#065f46 }
+  .b10 { background:#f8fafc;color:#334155 }
+  .b11 { background:#fdf4ff;color:#86198f }
+  .paid-pill { display:inline-block; min-width:52px; text-align:center; font-size:11px; font-weight:600; padding:4px 8px; border-radius:99px; }
+  .paid-yes { background: var(--green-bg); color: var(--green-text); }
+  .paid-no { background: var(--red-bg); color: var(--red-text); }
+
+  .amt { font-family: 'DM Mono', monospace; font-weight: 500; font-size: 13px; }
+  .no-results { padding: 2.5rem; text-align: center; color: var(--text3); font-size: 13px; }
+
+  .btn-edit, .btn-del, .btn-save, .btn-cancel { font-size: 12px; font-family: 'DM Sans', sans-serif; padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border2); background: transparent; color: var(--text2); transition: all .15s; }
+  .btn-edit:hover { background: var(--surface2); color: var(--text); }
+  .btn-del { margin-left: 4px; }
+  .btn-del:hover { background: var(--red-bg); color: var(--red-text); border-color: #fca5a5; }
+  .btn-save { background: var(--blue-bg); color: var(--blue-text); border-color: #bfdbfe; font-weight: 500; }
+  .btn-save:hover { background: #dbeafe; }
+  .btn-cancel { margin-left: 4px; }
+  .btn-cancel:hover { background: var(--surface2); }
+
+  .edit-row td { background: var(--blue-bg); padding: 6px 10px; }
+  .edit-row input[type="text"], .edit-row input[type="number"], .edit-row select { width: 100%; height: 30px; padding: 0 8px; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; }
+  .edit-row input[type="number"] { text-align: right; }
+  .edit-row input:focus, .edit-row select:focus { border-color: var(--blue); }
+  .paid-select { width: 72px; height: 30px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 12px; outline: none; }
+  .paid-select:focus { border-color: var(--blue); }
+
+  .add-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+  .add-panel h2 { font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: .85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .add-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 8px; align-items: end; margin-bottom: 10px; }
+  .add-grid label { font-size: 11px; color: var(--text3); font-weight: 500; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .add-grid input, .add-grid select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color .15s; }
+  .add-grid input:focus, .add-grid select:focus { border-color: var(--blue); }
+  .add-actions { display: flex; align-items: center; gap: 12px; }
+  .btn-add { height: 36px; padding: 0 18px; border-radius: var(--radius-sm); border: 1px solid var(--blue); background: var(--blue); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity .15s; }
+  .btn-add:hover { opacity: .88; }
+  .all-months-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); cursor: pointer; user-select: none; }
+
+  #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--text); color: var(--bg); font-size: 13px; padding: 9px 16px; border-radius: var(--radius-sm); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 100; }
+  #toast.show { opacity: 1; }
+
+  @media (max-width: 700px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .add-grid { grid-template-columns: 1fr 1fr; }
+    header { padding: 1rem; }
+    .main { padding: 1rem 1rem 3rem; }
+    tbody td, thead th { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Expense Database 2026</h1>
+  <span id="hdr-label">Full year · Jan – Dec</span>
+</header>
+
+<div class="main">
+
+  <div class="salary-edit">
+    <span>Monthly salary (per month):</span>
+    <input type="number" id="salaryInput" value="4700" min="0">
+    <button class="btn-salary" onclick="updateSalary()">Update</button>
+  </div>
+
+  <div class="metrics" id="metrics"></div>
+  <div class="bar-section" id="balBar"></div>
+
+  <div class="controls">
+    <input type="text" id="q" placeholder="Search by company, amount, month…" oninput="render()">
+    <select id="mf" onchange="render()">
+      <option value="">All months</option>
+      <option value="0">January</option>
+      <option value="1">February</option>
+      <option value="2">March</option>
+      <option value="3">April</option>
+      <option value="4">May</option>
+      <option value="5">June</option>
+      <option value="6">July</option>
+      <option value="7">August</option>
+      <option value="8">September</option>
+      <option value="9">October</option>
+      <option value="10">November</option>
+      <option value="11">December</option>
+    </select>
+    <select id="sf" onchange="render()">
+      <option value="amt-d">Amount: high to low</option>
+      <option value="amt-a">Amount: low to high</option>
+      <option value="co-a">Company: A–Z</option>
+      <option value="mo">Month order</option>
+    </select>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:26%">Company</th>
+          <th style="width:15%">Month</th>
+          <th style="width:11%">Due date</th>
+          <th style="width:12%">Paid</th>
+          <th style="width:12%;text-align:right">Amount</th>
+          <th style="width:24%;text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="nores" class="no-results" style="display:none">No results found.</div>
+  </div>
+
+  <div class="add-panel">
+    <h2>Add new expense</h2>
+    <div class="add-grid">
+      <div><label>Company name</label><input type="text" id="nc" placeholder="e.g. Netflix"></div>
+      <div><label>Amount ($)</label><input type="number" id="na" placeholder="0" min="0"></div>
+      <div><label>Due date</label><input type="text" id="nd" placeholder="e.g. 15th"></div>
+      <div><label>Month</label>
+        <select id="nm">
+          <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+          <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+          <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+          <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+        </select>
+      </div>
+    </div>
+    <div class="add-actions">
+      <button class="btn-add" onclick="addExpense()">+ Add expense</button>
+      <label class="all-months-label">
+        <input type="checkbox" id="allMonths"> Add to all 12 months
+      </label>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let SALARY = 4700;
+let editId = null;
+let nextId = 193;
+
+let data = [
+  {id:1,company:'Mortgage',amount:1800,date:'1st',mi:0, paid:false},
+  {id:2,company:'Jeep Payment',amount:995,date:'28th',mi:0, paid:false},
+  {id:3,company:'Geico Car Ins',amount:104,date:'14th',mi:0, paid:false},
+  {id:4,company:'Tampa Electric',amount:144,date:'26th',mi:0, paid:false},
+  {id:5,company:'Capital One (US)',amount:77,date:'10th',mi:0, paid:false},
+  {id:6,company:'Capital One (US) CC',amount:107,date:'—',mi:0, paid:false},
+  {id:7,company:'First Premier',amount:69,date:'1st Oct',mi:0, paid:false},
+  {id:8,company:'Aspire',amount:80,date:'13th',mi:0, paid:false},
+  {id:9,company:'Credit One',amount:60,date:'10th',mi:0, paid:false},
+  {id:10,company:'US Mobile',amount:25,date:'3rd',mi:0, paid:false},
+  {id:11,company:'Spectrum Internet',amount:25,date:'10th',mi:0, paid:false},
+  {id:12,company:'Polk County Water',amount:77,date:'26th',mi:0, paid:false},
+  {id:13,company:'Sun Coast CC',amount:25,date:'24th',mi:0, paid:false},
+  {id:14,company:'Sun Coast Loan',amount:500,date:'9th',mi:0, paid:false},
+  {id:15,company:'Chase Flexi',amount:156,date:'24th',mi:0, paid:false},
+  {id:16,company:'PayPal Credit',amount:149,date:'4th',mi:0, paid:false},
+  {id:17,company:'Mortgage',amount:1800,date:'1st',mi:1, paid:false},
+  {id:18,company:'Jeep Payment',amount:995,date:'28th',mi:1, paid:false},
+  {id:19,company:'Geico Car Ins',amount:104,date:'14th',mi:1, paid:false},
+  {id:20,company:'Tampa Electric',amount:172,date:'28th',mi:1, paid:false},
+  {id:21,company:'Capital One (US)',amount:50,date:'20th',mi:1, paid:false},
+  {id:22,company:'Capital One (US) CC',amount:114,date:'20th',mi:1, paid:false},
+  {id:23,company:'First Premier',amount:67,date:'30th',mi:1, paid:false},
+  {id:24,company:'Aspire',amount:76,date:'13th',mi:1, paid:false},
+  {id:25,company:'Credit One',amount:60,date:'10th',mi:1, paid:false},
+  {id:26,company:'US Mobile',amount:25,date:'3rd',mi:1, paid:false},
+  {id:27,company:'Spectrum Internet',amount:25,date:'10th',mi:1, paid:false},
+  {id:28,company:'Polk County Water',amount:122,date:'26th',mi:1, paid:false},
+  {id:29,company:'Sun Coast CC',amount:25,date:'24th',mi:1, paid:false},
+  {id:30,company:'Sun Coast Loan',amount:500,date:'9th',mi:1, paid:false},
+  {id:31,company:'Chase Flexi',amount:75,date:'20th',mi:1, paid:false},
+  {id:32,company:'PayPal Credit',amount:50,date:'30th',mi:1, paid:false},
+  {id:33,company:'Mortgage',amount:1800,date:'1st',mi:2, paid:false},
+  {id:34,company:'Jeep Payment',amount:995,date:'28th',mi:2, paid:false},
+  {id:35,company:'Geico Car Ins',amount:104,date:'14th',mi:2, paid:false},
+  {id:36,company:'Tampa Electric',amount:172,date:'28th',mi:2, paid:false},
+  {id:37,company:'Capital One (US)',amount:50,date:'10th',mi:2, paid:false},
+  {id:38,company:'Capital One (US) CC',amount:114,date:'20th',mi:2, paid:false},
+  {id:39,company:'First Premier',amount:139,date:'30th',mi:2, paid:false},
+  {id:40,company:'Aspire',amount:176,date:'13th',mi:2, paid:false},
+  {id:41,company:'Credit One',amount:30,date:'10th',mi:2, paid:false},
+  {id:42,company:'US Mobile',amount:40,date:'3rd',mi:2, paid:false},
+  {id:43,company:'Spectrum Internet',amount:30,date:'10th',mi:2, paid:false},
+  {id:44,company:'Polk County Water',amount:122,date:'26th',mi:2, paid:false},
+  {id:45,company:'Sun Coast CC',amount:25,date:'24th',mi:2, paid:false},
+  {id:46,company:'Sun Coast Loan',amount:500,date:'9th',mi:2, paid:false},
+  {id:47,company:'Chase Flexi',amount:75,date:'20th',mi:2, paid:false},
+  {id:48,company:'PayPal Credit',amount:49,date:'30th',mi:2, paid:false},
+  {id:49,company:'Mortgage',amount:1800,date:'1st',mi:3, paid:false},
+  {id:50,company:'Jeep Payment',amount:995,date:'28th',mi:3, paid:false},
+  {id:51,company:'Geico Car Ins',amount:104,date:'14th',mi:3, paid:false},
+  {id:52,company:'Tampa Electric',amount:172,date:'28th',mi:3, paid:false},
+  {id:53,company:'Capital One (US)',amount:50,date:'10th',mi:3, paid:false},
+  {id:54,company:'Capital One (US) CC',amount:114,date:'20th',mi:3, paid:false},
+  {id:55,company:'First Premier',amount:139,date:'30th',mi:3, paid:false},
+  {id:56,company:'Aspire',amount:176,date:'13th',mi:3, paid:false},
+  {id:57,company:'Credit One',amount:30,date:'10th',mi:3, paid:false},
+  {id:58,company:'US Mobile',amount:40,date:'3rd',mi:3, paid:false},
+  {id:59,company:'Spectrum Internet',amount:30,date:'10th',mi:3, paid:false},
+  {id:60,company:'Polk County Water',amount:122,date:'26th',mi:3, paid:false},
+  {id:61,company:'Sun Coast CC',amount:25,date:'24th',mi:3, paid:false},
+  {id:62,company:'Sun Coast Loan',amount:500,date:'9th',mi:3, paid:false},
+  {id:63,company:'Chase Flexi',amount:75,date:'20th',mi:3, paid:false},
+  {id:64,company:'PayPal Credit',amount:49,date:'30th',mi:3, paid:false},
+  {id:65,company:'Mortgage',amount:1800,date:'1st',mi:4, paid:false},
+  {id:66,company:'Jeep Payment',amount:995,date:'28th',mi:4, paid:false},
+  {id:67,company:'Geico Car Ins',amount:104,date:'14th',mi:4, paid:false},
+  {id:68,company:'Tampa Electric',amount:172,date:'28th',mi:4, paid:false},
+  {id:69,company:'Capital One (US)',amount:50,date:'10th',mi:4, paid:false},
+  {id:70,company:'Capital One (US) CC',amount:114,date:'20th',mi:4, paid:false},
+  {id:71,company:'First Premier',amount:139,date:'30th',mi:4, paid:false},
+  {id:72,company:'Aspire',amount:176,date:'13th',mi:4, paid:false},
+  {id:73,company:'Credit One',amount:30,date:'10th',mi:4, paid:false},
+  {id:74,company:'US Mobile',amount:40,date:'3rd',mi:4, paid:false},
+  {id:75,company:'Spectrum Internet',amount:30,date:'10th',mi:4, paid:false},
+  {id:76,company:'Polk County Water',amount:122,date:'26th',mi:4, paid:false},
+  {id:77,company:'Sun Coast CC',amount:25,date:'24th',mi:4, paid:false},
+  {id:78,company:'Sun Coast Loan',amount:500,date:'9th',mi:4, paid:false},
+  {id:79,company:'Chase Flexi',amount:75,date:'20th',mi:4, paid:false},
+  {id:80,company:'PayPal Credit',amount:49,date:'30th',mi:4, paid:false},
+  {id:81,company:'Mortgage',amount:1800,date:'1st',mi:5, paid:false},
+  {id:82,company:'Jeep Payment',amount:995,date:'28th',mi:5, paid:false},
+  {id:83,company:'Geico Car Ins',amount:104,date:'14th',mi:5, paid:false},
+  {id:84,company:'Tampa Electric',amount:172,date:'28th',mi:5, paid:false},
+  {id:85,company:'Capital One (US)',amount:50,date:'10th',mi:5, paid:false},
+  {id:86,company:'Capital One (US) CC',amount:114,date:'20th',mi:5, paid:false},
+  {id:87,company:'First Premier',amount:139,date:'30th',mi:5, paid:false},
+  {id:88,company:'Aspire',amount:176,date:'13th',mi:5, paid:false},
+  {id:89,company:'Credit One',amount:30,date:'10th',mi:5, paid:false},
+  {id:90,company:'US Mobile',amount:40,date:'3rd',mi:5, paid:false},
+  {id:91,company:'Spectrum Internet',amount:30,date:'10th',mi:5, paid:false},
+  {id:92,company:'Polk County Water',amount:122,date:'26th',mi:5, paid:false},
+  {id:93,company:'Sun Coast CC',amount:25,date:'24th',mi:5, paid:false},
+  {id:94,company:'Sun Coast Loan',amount:500,date:'9th',mi:5, paid:false},
+  {id:95,company:'Chase Flexi',amount:75,date:'20th',mi:5, paid:false},
+  {id:96,company:'PayPal Credit',amount:49,date:'30th',mi:5, paid:false},
+  {id:97,company:'Mortgage',amount:1800,date:'1st',mi:6, paid:false},
+  {id:98,company:'Jeep Payment',amount:995,date:'28th',mi:6, paid:false},
+  {id:99,company:'Geico Car Ins',amount:104,date:'14th',mi:6, paid:false},
+  {id:100,company:'Tampa Electric',amount:172,date:'28th',mi:6, paid:false},
+  {id:101,company:'Capital One (US)',amount:50,date:'10th',mi:6, paid:false},
+  {id:102,company:'Capital One (US) CC',amount:114,date:'20th',mi:6, paid:false},
+  {id:103,company:'First Premier',amount:139,date:'30th',mi:6, paid:false},
+  {id:104,company:'Aspire',amount:176,date:'13th',mi:6, paid:false},
+  {id:105,company:'Credit One',amount:30,date:'10th',mi:6, paid:false},
+  {id:106,company:'US Mobile',amount:40,date:'3rd',mi:6, paid:false},
+  {id:107,company:'Spectrum Internet',amount:30,date:'10th',mi:6, paid:false},
+  {id:108,company:'Polk County Water',amount:122,date:'26th',mi:6, paid:false},
+  {id:109,company:'Sun Coast CC',amount:25,date:'24th',mi:6, paid:false},
+  {id:110,company:'Sun Coast Loan',amount:500,date:'9th',mi:6, paid:false},
+  {id:111,company:'Chase Flexi',amount:75,date:'20th',mi:6, paid:false},
+  {id:112,company:'PayPal Credit',amount:49,date:'30th',mi:6, paid:false},
+  {id:113,company:'Mortgage',amount:1800,date:'1st',mi:7, paid:false},
+  {id:114,company:'Jeep Payment',amount:995,date:'28th',mi:7, paid:false},
+  {id:115,company:'Geico Car Ins',amount:104,date:'14th',mi:7, paid:false},
+  {id:116,company:'Tampa Electric',amount:172,date:'28th',mi:7, paid:false},
+  {id:117,company:'Capital One (US)',amount:50,date:'10th',mi:7, paid:false},
+  {id:118,company:'Capital One (US) CC',amount:114,date:'20th',mi:7, paid:false},
+  {id:119,company:'First Premier',amount:139,date:'30th',mi:7, paid:false},
+  {id:120,company:'Aspire',amount:176,date:'13th',mi:7, paid:false},
+  {id:121,company:'Credit One',amount:30,date:'10th',mi:7, paid:false},
+  {id:122,company:'US Mobile',amount:40,date:'3rd',mi:7, paid:false},
+  {id:123,company:'Spectrum Internet',amount:30,date:'10th',mi:7, paid:false},
+  {id:124,company:'Polk County Water',amount:122,date:'26th',mi:7, paid:false},
+  {id:125,company:'Sun Coast CC',amount:25,date:'24th',mi:7, paid:false},
+  {id:126,company:'Sun Coast Loan',amount:500,date:'9th',mi:7, paid:false},
+  {id:127,company:'Chase Flexi',amount:75,date:'20th',mi:7, paid:false},
+  {id:128,company:'PayPal Credit',amount:49,date:'30th',mi:7, paid:false},
+  {id:129,company:'Mortgage',amount:1800,date:'1st',mi:8, paid:false},
+  {id:130,company:'Jeep Payment',amount:995,date:'28th',mi:8, paid:false},
+  {id:131,company:'Geico Car Ins',amount:104,date:'14th',mi:8, paid:false},
+  {id:132,company:'Tampa Electric',amount:172,date:'28th',mi:8, paid:false},
+  {id:133,company:'Capital One (US)',amount:50,date:'10th',mi:8, paid:false},
+  {id:134,company:'Capital One (US) CC',amount:114,date:'20th',mi:8, paid:false},
+  {id:135,company:'First Premier',amount:139,date:'30th',mi:8, paid:false},
+  {id:136,company:'Aspire',amount:176,date:'13th',mi:8, paid:false},
+  {id:137,company:'Credit One',amount:30,date:'10th',mi:8, paid:false},
+  {id:138,company:'US Mobile',amount:40,date:'3rd',mi:8, paid:false},
+  {id:139,company:'Spectrum Internet',amount:30,date:'10th',mi:8, paid:false},
+  {id:140,company:'Polk County Water',amount:122,date:'26th',mi:8, paid:false},
+  {id:141,company:'Sun Coast CC',amount:25,date:'24th',mi:8, paid:false},
+  {id:142,company:'Sun Coast Loan',amount:500,date:'9th',mi:8, paid:false},
+  {id:143,company:'Chase Flexi',amount:75,date:'20th',mi:8, paid:false},
+  {id:144,company:'PayPal Credit',amount:49,date:'30th',mi:8, paid:false},
+  {id:145,company:'Mortgage',amount:1800,date:'1st',mi:9, paid:false},
+  {id:146,company:'Jeep Payment',amount:995,date:'28th',mi:9, paid:false},
+  {id:147,company:'Geico Car Ins',amount:104,date:'14th',mi:9, paid:false},
+  {id:148,company:'Tampa Electric',amount:172,date:'28th',mi:9, paid:false},
+  {id:149,company:'Capital One (US)',amount:50,date:'10th',mi:9, paid:false},
+  {id:150,company:'Capital One (US) CC',amount:114,date:'20th',mi:9, paid:false},
+  {id:151,company:'First Premier',amount:139,date:'30th',mi:9, paid:false},
+  {id:152,company:'Aspire',amount:176,date:'13th',mi:9, paid:false},
+  {id:153,company:'Credit One',amount:30,date:'10th',mi:9, paid:false},
+  {id:154,company:'US Mobile',amount:40,date:'3rd',mi:9, paid:false},
+  {id:155,company:'Spectrum Internet',amount:30,date:'10th',mi:9, paid:false},
+  {id:156,company:'Polk County Water',amount:122,date:'26th',mi:9, paid:false},
+  {id:157,company:'Sun Coast CC',amount:25,date:'24th',mi:9, paid:false},
+  {id:158,company:'Sun Coast Loan',amount:500,date:'9th',mi:9, paid:false},
+  {id:159,company:'Chase Flexi',amount:75,date:'20th',mi:9, paid:false},
+  {id:160,company:'PayPal Credit',amount:49,date:'30th',mi:9, paid:false},
+  {id:161,company:'Mortgage',amount:1800,date:'1st',mi:10, paid:false},
+  {id:162,company:'Jeep Payment',amount:995,date:'28th',mi:10, paid:false},
+  {id:163,company:'Geico Car Ins',amount:104,date:'14th',mi:10, paid:false},
+  {id:164,company:'Tampa Electric',amount:172,date:'28th',mi:10, paid:false},
+  {id:165,company:'Capital One (US)',amount:50,date:'10th',mi:10, paid:false},
+  {id:166,company:'Capital One (US) CC',amount:114,date:'20th',mi:10, paid:false},
+  {id:167,company:'First Premier',amount:139,date:'30th',mi:10, paid:false},
+  {id:168,company:'Aspire',amount:176,date:'13th',mi:10, paid:false},
+  {id:169,company:'Credit One',amount:30,date:'10th',mi:10, paid:false},
+  {id:170,company:'US Mobile',amount:40,date:'3rd',mi:10, paid:false},
+  {id:171,company:'Spectrum Internet',amount:30,date:'10th',mi:10, paid:false},
+  {id:172,company:'Polk County Water',amount:122,date:'26th',mi:10, paid:false},
+  {id:173,company:'Sun Coast CC',amount:25,date:'24th',mi:10, paid:false},
+  {id:174,company:'Sun Coast Loan',amount:500,date:'9th',mi:10, paid:false},
+  {id:175,company:'Chase Flexi',amount:75,date:'20th',mi:10, paid:false},
+  {id:176,company:'PayPal Credit',amount:49,date:'30th',mi:10, paid:false},
+  {id:177,company:'Mortgage',amount:1800,date:'1st',mi:11, paid:false},
+  {id:178,company:'Jeep Payment',amount:995,date:'28th',mi:11, paid:false},
+  {id:179,company:'Geico Car Ins',amount:104,date:'14th',mi:11, paid:false},
+  {id:180,company:'Tampa Electric',amount:172,date:'28th',mi:11, paid:false},
+  {id:181,company:'Capital One (US)',amount:50,date:'10th',mi:11, paid:false},
+  {id:182,company:'Capital One (US) CC',amount:114,date:'20th',mi:11, paid:false},
+  {id:183,company:'First Premier',amount:139,date:'30th',mi:11, paid:false},
+  {id:184,company:'Aspire',amount:176,date:'13th',mi:11, paid:false},
+  {id:185,company:'Credit One',amount:30,date:'10th',mi:11, paid:false},
+  {id:186,company:'US Mobile',amount:40,date:'3rd',mi:11, paid:false},
+  {id:187,company:'Spectrum Internet',amount:30,date:'10th',mi:11, paid:false},
+  {id:188,company:'Polk County Water',amount:122,date:'26th',mi:11, paid:false},
+  {id:189,company:'Sun Coast CC',amount:25,date:'24th',mi:11, paid:false},
+  {id:190,company:'Sun Coast Loan',amount:500,date:'9th',mi:11, paid:false},
+  {id:191,company:'Chase Flexi',amount:75,date:'20th',mi:11, paid:false},
+  {id:192,company:'PayPal Credit',amount:49,date:'30th',mi:11, paid:false},
+];
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+
+function updateSalary() {
+  const v = parseFloat(document.getElementById('salaryInput').value);
+  if (!isNaN(v) && v > 0) { SALARY = v; render(); toast('Salary updated to ' + fmt(v)); }
+}
+
+function getFiltered() {
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  const mf = document.getElementById('mf').value;
+  const sf = document.getElementById('sf').value;
+  let rows = data.filter(r => {
+    const mq = mf === '' || String(r.mi) === mf;
+    const qq = !q || r.company.toLowerCase().includes(q) || String(r.amount).includes(q) || MONTHS[r.mi].toLowerCase().includes(q) || r.date.toLowerCase().includes(q);
+    return mq && qq;
+  });
+  rows.sort((a, b) => {
+    if (sf === 'amt-d') return b.amount - a.amount;
+    if (sf === 'amt-a') return a.amount - b.amount;
+    if (sf === 'co-a') return a.company.localeCompare(b.company);
+    return a.mi - b.mi || a.company.localeCompare(b.company);
+  });
+  return rows;
+}
+
+function updateMetrics(rows) {
+  const mf = document.getElementById('mf').value;
+  const months = mf === '' ? 12 : 1;
+  const totalOut = rows.reduce((s, r) => s + r.amount, 0);
+  const totalIn = SALARY * months;
+  const bal = totalIn - totalOut;
+  const pct = Math.min(120, Math.round((totalOut / totalIn) * 100));
+  const barCol = pct > 100 ? '#dc2626' : pct > 90 ? '#d97706' : '#2563eb';
+  const monthLabel = mf === '' ? 'Full year (12 months) vs total salary' : MONTHS[parseInt(mf)] + ' 2026 vs salary';
+  const salaryLabel = mf === '' ? 'Total salary (12 months)' : 'Monthly salary';
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">${salaryLabel}</div><div class="metric-value blue">${fmt(totalIn)}</div></div>
+    <div class="metric"><div class="metric-label">Total outgoings</div><div class="metric-value red">${fmt(totalOut)}</div></div>
+    <div class="metric"><div class="metric-label">Balance</div><div class="metric-value ${bal >= 0 ? 'green' : 'red'}">${bal >= 0 ? fmt(bal) : '-' + fmt(Math.abs(bal))}</div></div>
+    <div class="metric"><div class="metric-label">Expenses shown</div><div class="metric-value">${rows.length}</div></div>
+  `;
+  document.getElementById('balBar').innerHTML = `
+    <div class="bar-meta"><span>${monthLabel}</span><span>${pct}% of income spent</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, pct)}%;background:${barCol}"></div></div>
+  `;
+  document.getElementById('hdr-label').textContent = mf === '' ? 'Full year · Jan – Dec 2026' : MONTHS[parseInt(mf)] + ' 2026';
+}
+
+function startEdit(id) {
+  editId = id;
+  render();
+  setTimeout(() => { const el = document.getElementById('ei-' + id); if (el) el.focus(); }, 30);
+}
+
+function saveEdit(id) {
+  const r = data.find(x => x.id === id);
+  if (!r) return;
+  const co = document.getElementById('ei-' + id).value.trim();
+  const am = parseFloat(document.getElementById('ea-' + id).value);
+  const dt = document.getElementById('ed-' + id).value.trim();
+  const mi = parseInt(document.getElementById('em-' + id).value);
+  const paid = document.getElementById('ep-' + id).value === 'yes';
+  if (!co || isNaN(am) || am <= 0) { toast('Please enter a valid company and amount'); return; }
+  r.company = co; r.amount = am; r.date = dt || '—'; r.mi = mi; r.paid = paid;
+  editId = null;
+  render();
+  toast('Expense updated');
+}
+
+function cancelEdit() { editId = null; render(); }
+
+function deleteRow(id) {
+  if (!confirm('Delete this expense?')) return;
+  data = data.filter(x => x.id !== id);
+  if (editId === id) editId = null;
+  render();
+  toast('Expense deleted');
+}
+
+function togglePaid(id, val) {
+  const r = data.find(x => x.id === id);
+  if (!r) return;
+  r.paid = val === 'yes';
+  render();
+  toast(r.paid ? 'Marked as paid' : 'Marked as unpaid');
+}
+
+function addExpense() {
+  const co = document.getElementById('nc').value.trim();
+  const am = parseFloat(document.getElementById('na').value);
+  const dt = document.getElementById('nd').value.trim() || '—';
+  const mi = parseInt(document.getElementById('nm').value);
+  const allM = document.getElementById('allMonths').checked;
+  if (!co || isNaN(am) || am <= 0) { toast('Please enter a company name and amount'); return; }
+  if (allM) {
+    for (let m = 0; m < 12; m++) { data.push({ id: nextId++, company: co, amount: am, date: dt, mi: m, paid: false }); }
+    toast('Added to all 12 months');
+  } else {
+    data.push({ id: nextId++, company: co, amount: am, date: dt, mi: mi, paid: false });
+    toast('Expense added');
+  }
+  document.getElementById('nc').value = '';
+  document.getElementById('na').value = '';
+  document.getElementById('nd').value = '';
+  render();
+}
+
+function monthOptions(selected) {
+  return MONTHS.map((m, i) => `<option value="${i}"${i === selected ? ' selected' : ''}>${m}</option>`).join('');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function render() {
+  const rows = getFiltered();
+  updateMetrics(rows);
+  const tbody = document.getElementById('tbody');
+  const nores = document.getElementById('nores');
+  if (!rows.length) { tbody.innerHTML = ''; nores.style.display = 'block'; return; }
+  nores.style.display = 'none';
+  tbody.innerHTML = rows.map(r => {
+    if (r.id === editId) {
+      return `<tr class="edit-row">
+        <td><input type="text" id="ei-${r.id}" value="${r.company.replace(/"/g,'&quot;')}"></td>
+        <td><select id="em-${r.id}">${monthOptions(r.mi)}</select></td>
+        <td><input type="text" id="ed-${r.id}" value="${r.date}" style="width:75px"></td>
+        <td>
+          <select id="ep-${r.id}">
+            <option value="no" ${!r.paid ? 'selected' : ''}>No</option>
+            <option value="yes" ${r.paid ? 'selected' : ''}>Yes</option>
+          </select>
+        </td>
+        <td><input type="number" id="ea-${r.id}" value="${r.amount}" min="0" style="width:80px"></td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn-save" onclick="saveEdit(${r.id})">Save</button>
+          <button class="btn-cancel" onclick="cancelEdit()">Cancel</button>
+        </td>
+      </tr>`;
+    }
+    return `<tr>
+      <td style="font-weight:500">${r.company}</td>
+      <td><span class="badge b${r.mi}">${MONTHS[r.mi]}</span></td>
+      <td style="color:var(--text3);font-size:12px">${r.date}</td>
+      <td>
+        <select class="paid-select ${r.paid ? 'paid-yes' : 'paid-no'}" onchange="togglePaid(${r.id}, this.value)">
+          <option value="no" ${!r.paid ? 'selected' : ''}>No</option>
+          <option value="yes" ${r.paid ? 'selected' : ''}>Yes</option>
+        </select>
+      </td>
+      <td style="text-align:right"><span class="amt">${fmt(r.amount)}</span></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn-edit" onclick="startEdit(${r.id})">Edit</button>
+        <button class="btn-del" onclick="deleteRow(${r.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && editId !== null) cancelEdit(); });
+render();
+</script>
+</body>
+</html>
